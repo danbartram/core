@@ -152,12 +152,18 @@ class Updater extends BasicEmitter {
 	 * @param string $currentVersion current version to upgrade to
 	 * @param string $installedVersion previous version from which to upgrade from
 	 *
+	 * @throws \Exception In case the upgrade did not succeed
 	 * @return bool true if the operation succeeded, false otherwise
 	 */
 	private function doUpgrade($currentVersion, $installedVersion) {
+
 		// Update htaccess files for apache hosts
 		if (isset($_SERVER['SERVER_SOFTWARE']) && strstr($_SERVER['SERVER_SOFTWARE'], 'Apache')) {
-			\OC_Setup::updateHtaccess();
+			try {
+				\OC_Setup::updateHtaccess();
+			} catch (\Exception $e) {
+				throw new \Exception('.htaccess file has the wrong version. Please upload the new version.');
+			}
 		}
 
 		// create empty file in data dir, so we can later find

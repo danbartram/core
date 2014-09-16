@@ -137,12 +137,22 @@ class OC_Setup {
 
 	/**
 	 * Append the correct ErrorDocument path for Apache hosts
+	 * also checks whether the .htaccess includes the current version
 	 */
 	public static function updateHtaccess() {
+		$pathToHtaccess = OC::$SERVERROOT.'/.htaccess';
+
+		$version = \OC_Util::getVersion();
+		unset($version[3]);
+
+		if(strpos(file_get_contents($pathToHtaccess), 'Version: '.implode('.', $version)) === false) {
+			throw new \Exception('Version not found');
+		}
+
 		$content = "\n";
 		$content.= "ErrorDocument 403 ".OC::$WEBROOT."/core/templates/403.php\n";//custom 403 error page
 		$content.= "ErrorDocument 404 ".OC::$WEBROOT."/core/templates/404.php";//custom 404 error page
-		@file_put_contents(OC::$SERVERROOT.'/.htaccess', $content, FILE_APPEND); //suppress errors in case we don't have permissions for it
+		@file_put_contents($pathToHtaccess, $content, FILE_APPEND); //suppress errors in case we don't have permissions for it
 	}
 
 	public static function protectDataDirectory() {
