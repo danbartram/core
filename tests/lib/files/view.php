@@ -588,19 +588,27 @@ class View extends \PHPUnit_Framework_TestCase {
 		$rootView = new \OC\Files\View('');
 
 		$longPath = '';
-		// 4000 is the maximum path length in file_cache.path
+		$ds = DIRECTORY_SEPARATOR;
+		/*
+		 * 4000 is the maximum path length in file_cache.path in *nix
+		 * 228 is the max path length in windows
+		 */
 		$folderName = 'abcdefghijklmnopqrstuvwxyz012345678901234567890123456789';
-		$depth = (4000 / 57);
+		if (\OC_Util::runningOnWindows()) {
+			$depth = (195 / 57);
+		} else {
+			$depth = (4000 / 57);
+		}
 		foreach (range(0, $depth - 1) as $i) {
-			$longPath .= '/' . $folderName;
+			$longPath .= $ds . $folderName;
 			$result = $rootView->mkdir($longPath);
 			$this->assertTrue($result, "mkdir failed on $i - path length: " . strlen($longPath));
 
-			$result = $rootView->file_put_contents($longPath . '/test.txt', 'lorem');
+			$result = $rootView->file_put_contents($longPath . "{$ds}test.txt", 'lorem');
 			$this->assertEquals(5, $result, "file_put_contents failed on $i");
 
 			$this->assertTrue($rootView->file_exists($longPath));
-			$this->assertTrue($rootView->file_exists($longPath . '/test.txt'));
+			$this->assertTrue($rootView->file_exists($longPath . "{$ds}test.txt"));
 		}
 
 		$cache = $storage->getCache();
